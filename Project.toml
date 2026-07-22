@@ -1,7 +1,7 @@
 name = "BibParser"
 uuid = "13533e5b-e1c2-4e57-8cef-cac5e52f6474"
-authors = ["azzaare <jf@baffier.fr>"]
 version = "0.3.0"
+authors = ["azzaare <jf@baffier.fr>"]
 
 [deps]
 BibInternal = "2027ae74-3657-4b95-ae00-e2f7d55c3e64"
@@ -14,6 +14,9 @@ EzXML = "8f5d6c58-4d21-5cfd-889c-e3ad7ee6a615"
 JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
 JSONSchema = "7d188eb4-7ad8-530c-ae41-71a32a6d4692"
 YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
+
+[sources]
+BibInternal = {path = "../BibInternal"}
 
 [extensions]
 BibParserCFFExt = ["Dates", "JSONSchema", "YAML"]

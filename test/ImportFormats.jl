@@ -83,6 +83,8 @@
         @test document.entries[1].title == "Go"
         @test document.entries[1].authors[1].last == "The Example Team"
         @test !isempty(document.entries[1].id)
+        @test only(parse_bibliography(minimal; format = :CFF).entries).id ==
+              document.entries[1].id
         @test document.source == minimal
 
         rich = """

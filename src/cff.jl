@@ -16,7 +16,6 @@ const CFF_VERSIONS = Set(["1.2.0"])
 const HELP_URL = "https://github.com/citation-file-format/citation-file-format/blob/main/schema-guide.md"
 const PACKAGE_ROOT = module_path()
 const schemas = Dict{String, Schema}()
-const current_id = Ref(0)
 
 """
 Simple error struct used to abort parsing if the CFF version is not supported or invalid.
@@ -192,10 +191,10 @@ end
 """
 function generate_id(names, title, year, doi)
     separator = "-"
-    replace_dict = reduce(
-        merge, map(x -> Dict([x => ""]), collect("-\$£%&(){}+!?/\\:;'\"~#")))
-    replace_dict[' '] = separator
-    replace_func = str -> join(map(c -> get(replace_dict, c, "$c"), collect(str)))
+    replace_func = str -> strip(
+        replace(string(str), r"[^A-Za-z0-9._:-]+" => separator),
+        [first(separator)],
+    )
 
     normalized_title = replace_func(title)
     dash_title = first(normalized_title, min(5, length(normalized_title)))
@@ -209,12 +208,7 @@ function generate_id(names, title, year, doi)
 
     components = filter(!isempty, [names_prefix, dash_title, year])
     prefix = isempty(components) ? "cff" : join(components, separator)
-    if isempty(doi)
-        current_id[] += 1
-        "$(prefix)$(separator)$(current_id[])"
-    else
-        "$(prefix)$(separator)$(doi)"
-    end
+    return isempty(doi) ? prefix : "$(prefix)$(separator)$(doi)"
 end
 
 """
