@@ -1,3 +1,4 @@
+
 using Documenter, BibParser, BibInternal
 
 makedocs(

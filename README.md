@@ -6,23 +6,46 @@
 
 # BibParser.jl
 
-BibParser is a Julia package for parsing different bibliographic formats. The output are entries following the BibParser.jl structures. Instead of rewriting from scratch existing (and efficient) parsers in Julia, it is preferable to import them.
+BibParser is the import layer of the bibliography stack.
 
-This package is not meant to be used on its own. Please check [Bibliography.jl](https://github.com/JuliaBibliographies/Bibliography.jl) for a package handling both import/export from various bibliographic formats.
+It reads bibliographic source formats and projects them into
+`BibInternal.Entry` or lossless `BibInternal.BibliographyDocument` values.
+The supported formats are BibTeX, BibLaTeX, RIS, CFF 1.2, CSL-JSON, EndNote
+XML, and MODS 3.x.
+
+This package is usually used through `Bibliography.jl`, which provides the
+high-level import/export API. Using `BibParser.jl` directly is still useful when
+you want to parse a format without writing it back immediately.
 
 The output of an example parsing a BibTeX file can be found at [baffier.fr/publications.html](https://baffier.fr/publications.html).
 
-### BibTeX
+BibTeX, BibLaTeX, and RIS are available in the core package. Formats backed by
+external parsing libraries are package extensions:
 
-A new parser is in used since `v0.1.12`. It is almost complete. Currently missing features follow:
+- load `YAML` and `JSONSchema` to enable CFF;
+- load `JSON3` to enable CSL-JSON;
+- load `EzXML` to enable EndNote XML and MODS.
+
+Lossless parsing is available for the supported formats whenever the backend
+can preserve the raw source structure.
+
+For example:
+
+```julia
+using BibParser, JSON3
+document = parse_bibliography(read("references.json", String); format = :CSL)
+```
+
+### BibTeX and BibLaTeX
+
+A new parser is in use since `v0.1.12`. It preserves entries, string macros,
+preambles, comments, and free text in the lossless document model. Remaining
+transformations outside the parser grammar are:
+
 - Applying the LaTeX commands from `@preamble`s entries to other entries
-- Storing `@preamble`, `@string`, `@comment`, and free text to enable the reconstruction of the original `.bib` file
 - Optional transformation of Unicode <-> LaTeX characters
-
-### Citation Style Language (CSL-JSON)
-
-Ongoing work.
 
 ### CFF
 
-This implementation follows similar parsers: [cff-converter-python](https://github.com/citation-file-format/cff-converter-python) and [ruby-cff](https://github.com/citation-file-format/ruby-cff).
+The CFF importer validates version 1.2 documents against the bundled official
+JSON Schema before projecting their metadata.
