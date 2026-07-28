@@ -261,7 +261,7 @@ with_logger(NullLogger()) do
             @test count(block -> block.kind == :free, document.blocks) == 1
             @test any(
                 field -> field.name == "journaltitle" &&
-                field.value == "Scientific Memoirs",
+                         field.value == "Scientific Memoirs",
                 document.entries[2].raw.fields)
             @test document.entries[1].canonical.in.address == "Paris"
         end
