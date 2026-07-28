@@ -193,7 +193,7 @@ function generate_id(names, title, year, doi)
     separator = "-"
     replace_func = str -> strip(
         replace(string(str), r"[^A-Za-z0-9._:-]+" => separator),
-        [first(separator)],
+        [first(separator)]
     )
 
     normalized_title = replace_func(title)

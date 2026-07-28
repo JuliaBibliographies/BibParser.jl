@@ -814,8 +814,10 @@ end
 
 Parse a BibTeX file located at `path`. Raise a detailed warning for each invalid entry.
 """
-parse_file(path; check = :error, format = :BibTeX) = parse_string(
-    read(path, String); check, format)
+function parse_file(path; check = :error, format = :BibTeX)
+    parse_string(
+        read(path, String); check, format)
+end
 
 function _source_span(input::String, start::Int, stop::Int)
     prefix = start == firstindex(input) ? "" :

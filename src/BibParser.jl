@@ -49,8 +49,10 @@ Parse bibliography content from a string and return entries in the legacy
 format. Prefer [`parse_bibliography`](@ref) when source preservation and
 diagnostics are needed.
 """
-parse_string(input; format::Symbol = :BibTeX, check = :error) = parse_file(
-    IOBuffer(input), Val(format); check)
+function parse_string(input; format::Symbol = :BibTeX, check = :error)
+    parse_file(
+        IOBuffer(input), Val(format); check)
+end
 
 parse_file(io::IO, ::Val{:BibTeX}; check) = BibTeX.parse_string(read(io, String); check)
 function parse_file(io::IO, ::Val{:BibLaTeX}; check)
