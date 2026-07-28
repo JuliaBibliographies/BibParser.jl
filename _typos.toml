@@ -1,6 +1,7 @@
 [default]
 extend-ignore-re = [
-    "iMatix"
+    "iMatix",
+    "THES",
 ]
 
 [files]

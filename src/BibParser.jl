@@ -105,8 +105,21 @@ end
 function _read_input(input)
     if input isa IO
         return read(input, String)
-    elseif input isa AbstractString && isfile(input)
-        return read(input, String)
+    elseif input isa AbstractString
+        source = String(input)
+        # Multi-line strings are inline bibliography content, not file paths.
+        if occursin('\n', source) || occursin('\r', source)
+            return source
+        end
+        try
+            return isfile(source) ? read(source, String) : source
+        catch e
+            # Linux can throw ENAMETOOLONG for inline content accidentally probed as a path.
+            if e isa Base.IOError
+                return source
+            end
+            rethrow()
+        end
     else
         return String(input)
     end
