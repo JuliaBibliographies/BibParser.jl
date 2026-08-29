@@ -1,0 +1,27 @@
+name: Performance contracts
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  suite:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+        with:
+          repository: Humans-of-Julia/BibInternal.jl
+          path: perf-deps/BibInternal
+      - uses: JuliaConstraints/PerfChecker.jl@feature/perfchecker-software-suites
+        env:
+          BIBINTERNAL_PATH: ${{ github.workspace }}/perf-deps/BibInternal
+          BIBPARSER_PATH: ${{ github.workspace }}
+        with:
+          project: perf
+          suite: perf/entrypoint.jl
+          profile: ci
+          reports: perf/results/ci

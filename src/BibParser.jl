@@ -99,7 +99,8 @@ For bibliography formats with validation rules, the `check` keyword argument
 can be set to `:none`, `nothing`, `:warn`, or `:error`.
 """
 function parse_entry(entry; parser = :BibTeX, check = :error)
-    return parser == :BibTeX && return BibTeX.parse_string(entry; check)
+    parser == :BibTeX || throw(ArgumentError("The $parser entry parser is not loaded."))
+    return BibTeX.parse_string(entry; check)
 end
 
 function _read_input(input)
