@@ -47,7 +47,16 @@ function bibparser_perf_suite(;
             FeatureVariant(joinpath(@__DIR__, "features", "parse_file.jl");
                 since = v"0.1.4", comparison_key = "bibtex-file-parse/v1")],
         options = Dict(:samples => 20, :evals => 1, :seconds => 0.2))
+    parsing_allocations = FeatureSpec(:parse_bibtex_file_allocations;
+        description = "Attribute BibTeX parsing allocations to source file and line",
+        backend = :profile_alloc, variants = parsing.variants,
+        options = Dict(:targets => ["BibParser"], :track => "none", :repeat => true))
+    parsing_profile = FeatureSpec(:parse_bibtex_file_profile;
+        description = "Capture BibTeX parsing CPU call stacks for flame graphs",
+        backend = :profile, variants = parsing.variants,
+        options = Dict(:targets => ["BibParser"], :track => "none", :repeat => true,
+            :profile_seconds => 0.5, :profile_delay => 0.001))
     return PackageSuite("BibParser"; source, environment, versions = :all,
         dev_sources = [bibinternal_source], release_pins = bibparser_release_pins(),
-        features = [parsing])
+        features = [parsing, parsing_allocations, parsing_profile])
 end
