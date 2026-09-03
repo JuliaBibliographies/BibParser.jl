@@ -47,21 +47,33 @@ function bibparser_perf_suite(;
             FeatureVariant(joinpath(@__DIR__, "features", "parse_file.jl");
                 since = v"0.1.4", comparison_key = "bibtex-file-parse/v1")],
         options = Dict(:samples => 50, :evals => 1, :seconds => 0.5))
+    parsing_chairmark = FeatureSpec(:parse_bibtex_file_chairmark;
+        workload = :parse_bibtex_file,
+        description = parsing.description, backend = :chairmark,
+        variants = parsing.variants,
+        options = Dict(:samples => 50, :evals => 1, :seconds => 0.5))
     parsing_allocations = FeatureSpec(:parse_bibtex_file_allocations;
+        workload = :parse_bibtex_file,
         description = "Attribute BibTeX parsing allocations to source file and line",
         backend = :profile_alloc, variants = parsing.variants,
         options = Dict(:targets => ["BibParser"], :track => "none", :repeat => true))
     parsing_profile = FeatureSpec(:parse_bibtex_file_profile;
+        workload = :parse_bibtex_file,
         description = "Capture BibTeX parsing CPU call stacks for flame graphs",
         backend = :profile, variants = parsing.variants,
         options = Dict(:targets => ["BibParser"], :track => "none", :repeat => true,
             :profile_seconds => 0.5, :profile_delay => 0.001))
     parsing_wall_profile = FeatureSpec(:parse_bibtex_file_wall_profile;
+        workload = :parse_bibtex_file,
         description = "Capture BibTeX parsing task wall-time stacks",
         backend = :wall_profile, variants = parsing.variants,
+        julia_since = v"1.12",
         options = Dict(:targets => ["BibParser"], :track => "none", :repeat => true,
             :profile_seconds => 0.5, :profile_delay => 0.001))
     return PackageSuite("BibParser"; source, environment, versions = :all,
         dev_sources = [bibinternal_source], release_pins = bibparser_release_pins(),
-        features = [parsing, parsing_allocations, parsing_profile, parsing_wall_profile])
+        features = [parsing, parsing_chairmark, parsing_allocations,
+            parsing_profile, parsing_wall_profile])
 end
+
+build_suite() = bibparser_perf_suite()
