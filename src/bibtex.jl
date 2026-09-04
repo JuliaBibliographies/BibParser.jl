@@ -240,7 +240,7 @@ mutable struct Parser
     content::Content
     errors::Vector{BibTeXError}
     field::Field
-    input::Vector{Char}
+    input::String
     pos_start::Position
     pos_end::Position
     rules_checker::Symbol
@@ -266,7 +266,7 @@ mutable struct Parser
             content,
             errors,
             field,
-            collect(input),
+            String(input),
             pos_start,
             pos_end,
             rules_checker,
@@ -337,7 +337,8 @@ Retrieve the `Accumulator` of the parser.
 function get_acc(parser; from = 1, to = 0)
     a = from + parser.acc.from - 1
     b = parser.acc.to - to
-    return String(@view parser.input[a:b])
+    a > b && return ""
+    return String(SubString(parser.input, a, thisind(parser.input, b)))
 end
 
 """
@@ -383,7 +384,7 @@ Increment the start/end position and accumulator of the parser.
 """
 function inc!(parser, char, dumped)
     char == '\n' ? inc_row!(parser) : inc_col!(parser)
-    parser.acc.to += 1
+    parser.acc.to += ncodeunits(char)
     if dumped
         parser.pos_start = Position(parser.pos_end.row, parser.pos_end.col)
         parser.acc.from = parser.acc.to

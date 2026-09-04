@@ -31,6 +31,22 @@ with_logger(NullLogger()) do
                 end
             end
 
+            @testset "Unicode input keeps accumulator boundaries" begin
+                bib = """
+                @article{étude2026,
+                    author = {Lovelace, Adé},
+                    title = {Étude λ des performances},
+                    journal = {Revue Julia},
+                    year = {2026}
+                }
+                """
+                parsed = parse_entry(bib)
+                entry = parsed["étude2026"]
+                @test entry.authors[1].first == "Adé"
+                @test entry.title == "Étude λ des performances"
+                @test entry.in.journal == "Revue Julia"
+            end
+
             @testset "don't copy fields from previous entries (#28)" begin
                 bib_str = """
                 @book{FroeseFischer1997,
