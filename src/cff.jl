@@ -14,8 +14,15 @@ end
 
 const CFF_VERSIONS = Set(["1.2.0"])
 const HELP_URL = "https://github.com/citation-file-format/citation-file-format/blob/main/schema-guide.md"
-const PACKAGE_ROOT = module_path()
+# Preserve the private String binding for existing callers, but refresh it on
+# load: absolute resource locations must not survive a relocated compiled cache.
+PACKAGE_ROOT::String = module_path()
 const schemas = Dict{String, Schema}()
+
+function __init__()
+    global PACKAGE_ROOT = module_path()
+    empty!(schemas)
+end
 
 """
 Simple error struct used to abort parsing if the CFF version is not supported or invalid.
@@ -58,7 +65,7 @@ function parse_content(content; id = "")
 
     if !haskey(schemas, cff_version)
         schemas[cff_version] = Schema(read(
-            joinpath(PACKAGE_ROOT, "src", "cff", "schema-$(cff_version).json"), String))
+            joinpath(module_path(), "src", "cff", "schema-$(cff_version).json"), String))
     end
 
     errors = validate(content, schemas[cff_version])

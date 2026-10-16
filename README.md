@@ -4,6 +4,20 @@
 [![Coverage](https://codecov.io/gh/JuliaBibliographies/BibParser.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaBibliographies/BibParser.jl)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+CFF schema resources are located at runtime, including when a precompiled
+installation is moved. The extension resets its schema cache when loaded; its
+private `PACKAGE_ROOT` compatibility binding remains a string reflecting the
+current package location. Parsing resolves the schema location independently
+of that binding.
+
+The intrinsic `test/CFFRelocation.jl` regression precompiles an isolated resolved
+CFF environment, moves its package/environment/cache together, and parses valid
+and invalid CFF with the original directory absent. Julia 1.12+ requires strict
+reuse of the existing compiled cache; no package resolution/download occurs in
+this test. Earlier supported Julia versions use a cache-inventory check only.
+`check_cff_relocation!()` can be invoked separately from the full
+package-quality suite in an already resolved test environment.
+
 # BibParser.jl
 
 BibParser is the import layer of the bibliography stack.

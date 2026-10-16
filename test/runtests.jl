@@ -284,6 +284,8 @@ with_logger(NullLogger()) do
         end
 
         @testset "CFF" begin
+            include("CFFRelocation.jl")
+            check_cff_relocation!()
             files = [
                 ("CITATION.cff", true),
                 ("invalid_yaml.cff", false),
