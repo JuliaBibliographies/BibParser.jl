@@ -4,6 +4,9 @@ using Documenter, BibParser, BibInternal
 makedocs(
     sitename = "BibParser.jl",
     authors = "Jean-François BAFFIER",
+    remotes = Dict(pkgdir(BibInternal) => (
+        Documenter.Remotes.GitHub("JuliaBibliographies", "BibInternal.jl"),
+        "v$(pkgversion(BibInternal))")),
     format = Documenter.HTML(
         prettyurls = true,
         canonical = "https://juliabibliographies.github.io/BibParser.jl",

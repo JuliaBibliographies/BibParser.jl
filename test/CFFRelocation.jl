@@ -3,14 +3,16 @@ using Test, TOML, SHA, UUIDs
 
 function _cff_cache_inventory(depot)
     root = joinpath(depot, "compiled")
-    Dict(relpath(joinpath(parent, name), root) => bytes2hex(open(sha256, joinpath(parent, name)))
-        for (parent, _, files) in walkdir(root) for name in files if endswith(name, ".ji"))
+    Dict(relpath(joinpath(parent, name), root) => bytes2hex(open(
+             sha256, joinpath(parent, name)))
+    for (parent, _, files) in walkdir(root) for name in files if endswith(name, ".ji"))
 end
 
 function _cff_relocation_environment!(origin)
     project = Base.active_project()
     manifest_path = joinpath(dirname(project), "Manifest.toml")
-    isfile(manifest_path) || error("CFF relocation tests require an already resolved test Manifest")
+    isfile(manifest_path) ||
+        error("CFF relocation tests require an already resolved test Manifest")
     manifest = TOML.parsefile(manifest_path)
     roots = ["BibParser", "Dates", "JSONSchema", "YAML", "Test"]
     selected, pending = Set{String}(), copy(roots)
@@ -18,21 +20,24 @@ function _cff_relocation_environment!(origin)
         name = pop!(pending)
         name in selected && continue
         entries = get(manifest["deps"], name, nothing)
-        entries isa AbstractVector && length(entries) == 1 || error("Ambiguous or unresolved CFF test dependency")
+        entries isa AbstractVector && length(entries) == 1 ||
+            error("Ambiguous or unresolved CFF test dependency")
         push!(selected, name)
         deps = get(only(entries), "deps", String[])
         append!(pending, deps isa AbstractDict ? collect(keys(deps)) : deps)
         # Keep installed weak-dependency identities used by extension metadata.
         # Pruning them can make Julia's precompile graph itself inconsistent.
         weakdeps = get(only(entries), "weakdeps", String[])
-        append!(pending, filter(dep -> haskey(manifest["deps"], dep),
-            weakdeps isa AbstractDict ? collect(keys(weakdeps)) : weakdeps))
+        append!(pending,
+            filter(dep -> haskey(manifest["deps"], dep),
+                weakdeps isa AbstractDict ? collect(keys(weakdeps)) : weakdeps))
     end
     isolated = deepcopy(manifest)
     delete!(isolated, "project_hash")
     filter!(pair -> first(pair) in selected, isolated["deps"])
     environment, depot = joinpath(origin, "environment"), joinpath(origin, "depot")
-    mkpath(environment); mkpath(depot)
+    mkpath(environment)
+    mkpath(depot)
     for name in selected
         entry = only(isolated["deps"][name])
         if name == "BibParser"
@@ -44,11 +49,13 @@ function _cff_relocation_environment!(origin)
             entry["path"] = abspath(dirname(project), entry["path"])
         elseif haskey(entry, "git-tree-sha1")
             slug = Base.version_slug(UUID(entry["uuid"]), Base.SHA1(entry["git-tree-sha1"]))
-            source = findfirst(path -> isdir(joinpath(path, "packages", name, slug)), DEPOT_PATH)
+            source = findfirst(
+                path -> isdir(joinpath(path, "packages", name, slug)), DEPOT_PATH)
             source === nothing && error("Resolved CFF test source is not installed")
             target = joinpath(depot, "packages", name)
             mkpath(target)
-            symlink(joinpath(DEPOT_PATH[source], "packages", name, slug), joinpath(target, slug))
+            symlink(joinpath(DEPOT_PATH[source], "packages", name, slug),
+                joinpath(target, slug))
         end
     end
     # Only source/artifact links are shared. The child's compiled cache starts
@@ -64,9 +71,12 @@ function _cff_relocation_environment!(origin)
             ispath(target) || symlink(joinpath(directory, name), target)
         end
     end
-    test_project = Dict("deps" => Dict(name => only(isolated["deps"][name])["uuid"] for name in roots))
-    open(io -> TOML.print(io, test_project; sorted=true), joinpath(environment, "Project.toml"), "w")
-    open(io -> TOML.print(io, isolated; sorted=true), joinpath(environment, "Manifest.toml"), "w")
+    test_project = Dict("deps" => Dict(name => only(isolated["deps"][name])["uuid"]
+    for name in roots))
+    open(io -> TOML.print(io, test_project; sorted = true),
+        joinpath(environment, "Project.toml"), "w")
+    open(io -> TOML.print(io, isolated; sorted = true),
+        joinpath(environment, "Manifest.toml"), "w")
     # Julia tags sources under DEPOT_PATH with @depot in the cache header;
     # external absolute development paths are deliberately not relocatable.
     package = joinpath(depot, "dev", "BibParser")
@@ -81,11 +91,12 @@ function check_cff_relocation!()
     @testset "CFF schema parsing and runtime resource paths" begin
         cff = Base.get_extension(BibParser, :BibParserCFFExt).CFF
         valid = read(joinpath(pkgdir(BibParser), "examples", "CITATION.cff"), String)
-        @test isempty(parse_bibliography(valid; format=:CFF).diagnostics)
-        @test only(parse_bibliography(valid; format=:CFF).entries).title == "Software paper"
+        @test isempty(parse_bibliography(valid; format = :CFF).diagnostics)
+        @test only(parse_bibliography(valid; format = :CFF).entries).title ==
+              "Software paper"
         for name in ("invalid_yaml.cff", "invalid_version.cff", "invalid_schema.cff")
             input = read(joinpath(pkgdir(BibParser), "examples", name), String)
-            document = parse_bibliography(input; format=:CFF)
+            document = parse_bibliography(input; format = :CFF)
             @test isempty(document.entries)
             @test !isempty(document.diagnostics)
         end
@@ -103,10 +114,12 @@ function check_cff_relocation!()
                 println("CFF_EXTENSION_PRECOMPILED")
                 """
             command = `$(Base.julia_cmd()) --startup-file=no --history-file=no --threads=1 --gcthreads=1 --pkgimages=no --compiled-modules=yes --project=$(paths.environment) -e $precompile`
-            environment = ["JULIA_DEPOT_PATH"=>paths.depot, "JULIA_LOAD_PATH"=>"@:@stdlib",
-                "JULIA_PKG_OFFLINE"=>"true", "JULIA_PKG_SERVER"=>"", "JULIA_NUM_PRECOMPILE_TASKS"=>"1",
-                "JULIA_NUM_THREADS"=>"1", "OPENBLAS_NUM_THREADS"=>"1", "OMP_NUM_THREADS"=>"1"]
-            @test occursin("CFF_EXTENSION_PRECOMPILED", read(setenv(command, environment), String))
+            environment = [
+                "JULIA_DEPOT_PATH" => paths.depot, "JULIA_LOAD_PATH" => "@:@stdlib",
+                "JULIA_PKG_OFFLINE" => "true", "JULIA_PKG_SERVER" => "", "JULIA_NUM_PRECOMPILE_TASKS" => "1",
+                "JULIA_NUM_THREADS" => "1", "OPENBLAS_NUM_THREADS" => "1", "OMP_NUM_THREADS" => "1"]
+            @test occursin(
+                "CFF_EXTENSION_PRECOMPILED", read(setenv(command, environment), String))
             cached = _cff_cache_inventory(paths.depot)
             @test any(path -> occursin("BibParserCFFExt", path), keys(cached))
             relocated = joinpath(root, "relocated")
@@ -147,7 +160,7 @@ function check_cff_relocation!()
             # Earlier supported Julia versions retain the cache-inventory check.
             compiled_mode = VERSION >= v"1.12" ? "strict" : "yes"
             command = `$(Base.julia_cmd()) --startup-file=no --history-file=no --threads=1 --gcthreads=1 --pkgimages=no --compiled-modules=$compiled_mode --project=$(joinpath(relocated,"environment")) -e $check $origin $relocated`
-            environment[1] = "JULIA_DEPOT_PATH"=>relocated_depot
+            environment[1] = "JULIA_DEPOT_PATH" => relocated_depot
             output = read(setenv(command, environment), String)
             print(output)
             @test occursin("CFF_RELOCATED_PARSING_PASSED", output)
