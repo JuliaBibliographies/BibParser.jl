@@ -773,7 +773,47 @@ end
 
 Check if an `Accumulator` needs to be `dump!`ed. Dispatch to the appropriate `is_dumped` method according to the state of the parser.
 """
-is_dumped(parser, char) = is_dumped(parser, char, Val(parser.task))
+function is_dumped(parser, char)
+    task = parser.task
+    if task === :free
+        return is_dumped(parser, char, Val{:free}())
+    elseif task === :entry
+        return is_dumped(parser, char, Val{:entry}())
+    elseif task === :key
+        return is_dumped(parser, char, Val{:key}())
+    elseif task === :field_name
+        return is_dumped(parser, char, Val{:field_name}())
+    elseif task === :field_in
+        return is_dumped(parser, char, Val{:field_in}())
+    elseif task === :field_inbrace
+        return is_dumped(parser, char, Val{:field_inbrace}())
+    elseif task === :field_inquote
+        return is_dumped(parser, char, Val{:field_inquote}())
+    elseif task === :field_outquote
+        return is_dumped(parser, char, Val{:field_outquote}())
+    elseif task === :field_concat
+        return is_dumped(parser, char, Val{:field_concat}())
+    elseif task === :field_var
+        return is_dumped(parser, char, Val{:field_var}())
+    elseif task === :field_number
+        return is_dumped(parser, char, Val{:field_number}())
+    elseif task === :field_out
+        return is_dumped(parser, char, Val{:field_out}())
+    elseif task === :field_next
+        return is_dumped(parser, char, Val{:field_next}())
+    elseif task === :special
+        return is_dumped(parser, char, Val{:special}())
+    elseif task === :string
+        return is_dumped(parser, char, Val{:string}())
+    elseif task === :string_inquote
+        return is_dumped(parser, char, Val{:string_inquote}())
+    elseif task === :string_value
+        return is_dumped(parser, char, Val{:string_value}())
+    elseif task === :string_outquote
+        return is_dumped(parser, char, Val{:string_outquote}())
+    end
+    return is_dumped(parser, char, Val(task))
+end
 
 """
     dump!(parser, char = ' ')

@@ -24,6 +24,8 @@ with_logger(NullLogger()) do
         end
 
         @testset "BibTeX" begin
+            include("TaskDispatch.jl")
+
             @testset "Example files" begin
                 for file in ["test.bib", "error.bib"]
                     parsed = parse_file(joinpath(PACKAGE_ROOT, "examples", file))
